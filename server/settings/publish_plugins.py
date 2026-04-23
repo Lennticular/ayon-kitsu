@@ -95,6 +95,8 @@ class CustomCommentTemplateModel(BaseSettingsModel):
 class IntegrateKitsuNotes(BaseSettingsModel):
     set_status_note: bool = SettingsField(title="Set status on note")
     note_status_shortname: str = SettingsField(title="Note shortname")
+    set_status_on_farm: bool = SettingsField(title="Set status on farm")
+    farm_note_status_shortname: str = SettingsField(title="Farm note shortname")
     status_change_conditions: StatusChangeConditionsModel = SettingsField(
         default_factory=StatusChangeConditionsModel,
         title="Status change conditions"
@@ -102,6 +104,10 @@ class IntegrateKitsuNotes(BaseSettingsModel):
     custom_comment_template: CustomCommentTemplateModel = SettingsField(
         default_factory=CustomCommentTemplateModel,
         title="Custom Comment Template",
+    )
+    farm_comment_template: CustomCommentTemplateModel = SettingsField(
+        default_factory=CustomCommentTemplateModel,
+        title="Farm Comment Template",
     )
 
 class IntegrateKitsuReviews(BaseSettingsModel):
@@ -294,6 +300,8 @@ PUBLISH_DEFAULT_VALUES = {
     "IntegrateKitsuNote": {
         "set_status_note": False,
         "note_status_shortname": "wfa",
+        "set_status_on_farm": False,
+        "farm_note_status_shortname": "",
         "status_change_conditions": {
             "status_conditions": [],
             "family_requirements": [],
@@ -307,6 +315,10 @@ PUBLISH_DEFAULT_VALUES = {
 | version | `{version}` |
 | family | `{family}` |
 | name | `{name}` |""",
+        },
+        "farm_comment_template": {
+            "enabled": True,
+            "comment_template": "Send version {version} to farm",
         },
     },
     "IntegrateKitsuReview": {

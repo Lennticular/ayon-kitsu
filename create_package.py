@@ -188,21 +188,24 @@ def find_files_in_subdir(
 
 
 def _get_yarn_executable():
-    cmd = "which"
-    if platform.system().lower() == "windows":
-        cmd = "where"
+    """Return path to a working yarn executable or `None` if not found.
 
-    for line in subprocess.check_output(
-        [cmd, "yarn"], encoding="utf-8"
-    ).splitlines():
-        if not line or not os.path.exists(line):
-            continue
-        try:
-            subprocess.call([line, "--version"])
-            return line
-        except OSError:
-            continue
-    return None
+    Prefer `shutil.which()` to avoid platform-specific `which/where`
+    subprocess calls that raise `CalledProcessError` when not found.
+    """
+    # Try common command names
+    yarn = shutil.which("yarn") or shutil.which("yarnpkg")
+    if not yarn:
+        return None
+
+    # Verify the executable works
+    try:
+        subprocess.run(
+            [yarn, "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        return yarn
+    except (subprocess.CalledProcessError, OSError):
+        return None
 
 
 def copy_server_content(addon_output_dir: str, log: logging.Logger):
@@ -221,7 +224,10 @@ def copy_server_content(addon_output_dir: str, log: logging.Logger):
     frontend_dist_dirpath: str = os.path.join(frontend_dirpath, "dist")
     yarn_executable = _get_yarn_executable()
     if yarn_executable is None:
-        raise RuntimeError("Yarn executable was not found.")
+        raise RuntimeError(
+            "Yarn executable was not found. Please install Yarn and ensure it's available in PATH. "
+            "On Windows: install Node.js and then run 'npm install -g yarn', or see https://classic.yarnpkg.com/en/docs/install"
+        )
 
     subprocess.run([yarn_executable, "install"], cwd=frontend_dirpath)
     subprocess.run([yarn_executable, "build"], cwd=frontend_dirpath)
